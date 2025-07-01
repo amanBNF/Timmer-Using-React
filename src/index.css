@@ -1,0 +1,5 @@
+@import "tailwindcss";
+/* index.css */
+body {
+  background-color: #000; /* Prevents white flash during transition */
+}
