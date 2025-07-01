@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { saveDailySession } from '../utils/storage';
+import { useNavigate } from 'react-router-dom';
 
 const pageVariants = {
   initial: { opacity: 0, y: 30 },
@@ -74,6 +75,8 @@ const Clock = () => {
     return `${m}:${s}`;
   };
 
+    const navigate = useNavigate();
+
   return (
     <motion.div
       className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-hidden"
@@ -116,6 +119,7 @@ const Clock = () => {
               <span className="absolute -inset-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 blur-lg opacity-20 animate-pulse" />
             </motion.button>
           )}
+          
 
           {isRunning && !isPaused && (
             <button
@@ -141,6 +145,13 @@ const Clock = () => {
       <div className="text-6xl font-mono text-white mt-4 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)]">
         {formatTime(timeLeft)}
       </div>
+
+      <button
+                onClick={() => navigate('/')}
+                className="mt-10 bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-xl shadow transition"
+            >
+                ← Back to Home
+            </button>
 
       {/* Pop-up when time ends */}
       {showPopup && (
