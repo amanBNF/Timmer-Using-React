@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import { saveDailySession } from '../utils/storage';
 
 const pageVariants = {
   initial: { opacity: 0, y: 30 },
@@ -23,6 +25,26 @@ const Clock = () => {
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
       setShowPopup(true);
+      confetti(); 
+
+      const currentSession = parseInt(inputTime);
+      const prevStats = JSON.parse(localStorage.getItem('timerStats')) || {
+        totalSessions: 0,
+        totalMinutes: 0,
+        longestSession: 0,
+      };
+
+      const updatedStats = {
+        totalSessions: prevStats.totalSessions + 1,
+        totalMinutes: prevStats.totalMinutes + Math.floor(currentSession / 60),
+        longestSession: Math.max(prevStats.longestSession, currentSession),
+      };
+
+      localStorage.setItem('timerStats', JSON.stringify(updatedStats));
+
+      saveDailySession(currentSession);
+      console.log("✅ Saved session to focusData:", currentSession);
+
     }
 
     return () => clearTimeout(timerRef.current);
@@ -38,10 +60,7 @@ const Clock = () => {
     }
   };
 
-  const pauseTimer = () => {
-    setIsPaused(true);
-  };
-
+  const pauseTimer = () => setIsPaused(true);
   const resumeTimer = () => {
     if (timeLeft > 0) {
       setIsPaused(false);
@@ -57,18 +76,25 @@ const Clock = () => {
 
   return (
     <motion.div
-      className="flex flex-col items-center justify-center h-screen bg-black text-white overflow-hidden"
+      className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-hidden"
       variants={pageVariants}
       initial="initial"
       animate="animate"
       exit="exit"
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.5 }}
     >
-      <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent">
+      {/* Glowing Title */}
+      <motion.h1
+        className="text-5xl font-extrabold mb-10 bg-gradient-to-r from-purple-400 via-white to-purple-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+        initial={{ opacity: 0, y: -40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
+      >
         CLOCK TIMER
-      </h1>
+      </motion.h1>
 
-      <div className="mb-6 flex flex-col items-center space-y-4">
+      {/* Input */}
+      <div className="mb-8 flex flex-col items-center space-y-4">
         <input
           type="number"
           placeholder="Enter time in seconds"
@@ -77,14 +103,18 @@ const Clock = () => {
           className="px-4 py-2 rounded bg-transparent border border-gray-500 text-white text-center w-64"
         />
 
+        {/* Control Buttons */}
         <div className="flex space-x-4">
           {!isRunning && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
               onClick={startTimer}
-              className="bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white text-lg px-6 py-2 rounded-xl shadow-md transition duration-300"
+              className="relative bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white text-lg px-6 py-2 rounded-xl shadow-lg transition duration-300"
             >
-              Start
-            </button>
+              <span className="relative z-10">Start</span>
+              <span className="absolute -inset-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 blur-lg opacity-20 animate-pulse" />
+            </motion.button>
           )}
 
           {isRunning && !isPaused && (
@@ -107,10 +137,12 @@ const Clock = () => {
         </div>
       </div>
 
-      <div className="text-6xl font-mono mt-4">
+      {/* Timer Display */}
+      <div className="text-6xl font-mono text-white mt-4 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)]">
         {formatTime(timeLeft)}
       </div>
 
+      {/* Pop-up when time ends */}
       {showPopup && (
         <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 flex items-center justify-center z-10">
           <div className="bg-white rounded-xl p-6 shadow-xl text-center animate-bounce">
