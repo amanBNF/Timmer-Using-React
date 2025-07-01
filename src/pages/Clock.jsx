@@ -12,10 +12,11 @@ const Clock = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    if (isRunning && timeLeft > 0) {
+    if (isRunning && !isPaused && timeLeft > 0) {
       timerRef.current = setTimeout(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
@@ -25,14 +26,26 @@ const Clock = () => {
     }
 
     return () => clearTimeout(timerRef.current);
-  }, [timeLeft, isRunning]);
+  }, [timeLeft, isRunning, isPaused]);
 
   const startTimer = () => {
     const parsedTime = parseInt(inputTime);
     if (!isNaN(parsedTime) && parsedTime > 0) {
       setTimeLeft(parsedTime);
       setIsRunning(true);
+      setIsPaused(false);
       setShowPopup(false);
+    }
+  };
+
+  const pauseTimer = () => {
+    setIsPaused(true);
+  };
+
+  const resumeTimer = () => {
+    if (timeLeft > 0) {
+      setIsPaused(false);
+      setIsRunning(true);
     }
   };
 
@@ -63,16 +76,39 @@ const Clock = () => {
           onChange={(e) => setInputTime(e.target.value)}
           className="px-4 py-2 rounded bg-transparent border border-gray-500 text-white text-center w-64"
         />
-        <button
-          onClick={startTimer}
-          className="bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white text-lg px-6 py-2 rounded-xl shadow-md transition duration-300"
-        >
-          Start Timer
-        </button>
+
+        <div className="flex space-x-4">
+          {!isRunning && (
+            <button
+              onClick={startTimer}
+              className="bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white text-lg px-6 py-2 rounded-xl shadow-md transition duration-300"
+            >
+              Start
+            </button>
+          )}
+
+          {isRunning && !isPaused && (
+            <button
+              onClick={pauseTimer}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white text-lg px-6 py-2 rounded-xl shadow-md transition duration-300"
+            >
+              Pause
+            </button>
+          )}
+
+          {isRunning && isPaused && (
+            <button
+              onClick={resumeTimer}
+              className="bg-green-500 hover:bg-green-600 text-white text-lg px-6 py-2 rounded-xl shadow-md transition duration-300"
+            >
+              Resume
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="text-6xl font-mono">
-        {isRunning ? formatTime(timeLeft) : timeLeft > 0 ? formatTime(timeLeft) : '00:00'}
+      <div className="text-6xl font-mono mt-4">
+        {formatTime(timeLeft)}
       </div>
 
       {showPopup && (
